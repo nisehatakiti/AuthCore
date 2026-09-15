@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AuthCore;
 
+use AuthCore\Admin\OnboardingPage;
 use AuthCore\Admin\UserManagementPage;
 use AuthCore\Authentication\AuthenticationResult;
 use AuthCore\Authentication\Authenticator;
@@ -37,5 +38,15 @@ final class AuthCore
         string $capability = 'manage_options',
     ): string {
         return UserManagementPage::registerContext($applicationKey, $parentMenuSlug, $menuTitle, $pageTitle, $capability);
+    }
+
+    public static function registerOnboardingMenu(
+        string $applicationKey,
+        string $parentMenuSlug,
+        string $menuTitle = 'Setup',
+        string $pageTitle = 'Initial Administrator Setup',
+        string $capability = 'manage_options',
+    ): string {
+        return OnboardingPage::registerContext($applicationKey, $parentMenuSlug, $menuTitle, $pageTitle, $capability);
     }
 }
