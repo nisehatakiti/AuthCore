@@ -22,6 +22,7 @@ final class Installer
         $charset_collate = $wpdb->get_charset_collate();
         $applications = Schema::applications_table();
         $user_accounts = Schema::user_accounts_table();
+        $sessions = Schema::sessions_table();
 
         $sql = "CREATE TABLE {$applications} (
             application_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -55,6 +56,21 @@ final class Installer
             UNIQUE KEY application_email (application_id, email),
             KEY application_id (application_id),
             KEY status (status)
+        ) {$charset_collate};
+
+        CREATE TABLE {$sessions} (
+            session_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+            application_id bigint(20) unsigned NOT NULL,
+            user_account_id bigint(20) unsigned NOT NULL,
+            token_hash char(64) NOT NULL,
+            created_at datetime NOT NULL,
+            expires_at datetime NOT NULL,
+            last_used_at datetime NOT NULL,
+            PRIMARY KEY  (session_id),
+            UNIQUE KEY token_hash (token_hash),
+            KEY application_id (application_id),
+            KEY user_account_id (user_account_id),
+            KEY expires_at (expires_at)
         ) {$charset_collate};";
 
         dbDelta($sql);
