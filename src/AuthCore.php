@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AuthCore;
 
+use AuthCore\Admin\UserManagementPage;
 use AuthCore\Authentication\AuthenticationResult;
 use AuthCore\Authentication\Authenticator;
 
@@ -27,4 +28,14 @@ final class AuthCore
     public static function revokeCapability(int $applicationId, int $userAccountId, string $capability): void { (new AuthorizationManager())->revokeCapability($applicationId, $userAccountId, $capability); }
     public static function hasCapability(int $applicationId, int $userAccountId, string $capability): bool { return (new AuthorizationManager())->hasCapability($applicationId, $userAccountId, $capability); }
     public static function hasCurrentUserCapability(int $applicationId, string $capability): bool { return (new AuthorizationManager())->hasCurrentUserCapability($applicationId, $capability); }
+
+    public static function registerUserManagementMenu(
+        string $applicationKey,
+        string $parentMenuSlug,
+        string $menuTitle = 'Users',
+        string $pageTitle = 'Users',
+        string $capability = 'manage_options',
+    ): string {
+        return UserManagementPage::registerContext($applicationKey, $parentMenuSlug, $menuTitle, $pageTitle, $capability);
+    }
 }
