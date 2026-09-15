@@ -27,11 +27,15 @@ final class Installer
             application_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             application_key varchar(100) NOT NULL,
             name varchar(190) NOT NULL,
+            type varchar(20) NOT NULL DEFAULT 'application',
+            parent_application_id bigint(20) unsigned NULL DEFAULT NULL,
             status varchar(20) NOT NULL DEFAULT 'active',
             created_at datetime NOT NULL,
             updated_at datetime NOT NULL,
             PRIMARY KEY  (application_id),
             UNIQUE KEY application_key (application_key),
+            KEY type (type),
+            KEY parent_application_id (parent_application_id),
             KEY status (status)
         ) {$charset_collate};
 

@@ -37,6 +37,7 @@ final class Plugin
     public static function initialize(): void
     {
         self::maybeMigrate();
+        (new PluginDiscovery())->registerActivePlugins();
         do_action('authcore/loaded', AUTHCORE_VERSION);
     }
 

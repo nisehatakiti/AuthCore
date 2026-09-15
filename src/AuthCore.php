@@ -15,4 +15,14 @@ final class AuthCore
     {
         return did_action('authcore/loaded') > 0;
     }
+
+    public static function registerPlugin(string $pluginFile): int
+    {
+        return (new ApplicationRegistry())->registerFromFile($pluginFile);
+    }
+
+    public static function getApplication(string $applicationKey): ?array
+    {
+        return (new ApplicationRegistry())->findByKey($applicationKey);
+    }
 }
