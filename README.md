@@ -85,25 +85,57 @@ AuthCore
 
 AuthCoreを基盤として、関連プラグインが独自の機能や権限を追加できる拡張機構を提供します。
 
-例えば、AlumniCoreをインストールした場合、AuthCore上にAlumniCore専用の権限体系を登録できます。
+### ApplicationとExtension
+
+AuthCore対応プラグインは、`application` と `extension` の2種類に分類されます。
+
+- **Application** — 独立したユーザー・アカウント・権限空間を持つ製品
+- **Extension** — 既存Applicationを拡張し、親Applicationのユーザー・権限体系を共有するプラグイン
+
+例えば、AlumniCoreはApplication、AlumniVoiceはAlumniCoreのExtensionとして登録できます。
+
+### AuthCoreメタ情報
+
+AuthCore対応プラグインは、WordPressプラグインヘッダーにAuthCore専用メタ情報を定義します。プラグイン有効化時にAuthCoreがメタ情報を読み取り、ApplicationまたはExtensionとして自動登録します。
+
+Applicationの必須項目:
 
 ```text
-AuthCore
-│
-├── AlumniCore
-│    ├── user.view
-│    ├── user.edit
-│    └── event.manage
-│
-└── StageArt
-     ├── user.view
-     ├── work.edit
-     └── production.manage
+AuthCore: application
+AuthCore Application Key: alumni
+AuthCore Application Name: AlumniCore
 ```
 
-同じ名前の権限であっても、アプリケーションが異なれば別の権限として扱える設計を想定しています。
+Extensionの必須項目:
 
-AlumniVoiceのようにAlumniCoreそのものを拡張するプラグインについては、AlumniCoreのユーザーID・権限体系を共有できます。
+```text
+AuthCore: extension
+AuthCore Application Key: alumni-voice
+AuthCore Application Name: AlumniVoice
+AuthCore Parent Application: alumni
+```
+
+Application Keyは論理識別子として扱い、原則変更しません。ExtensionのParent Applicationは親ApplicationのApplication Keyで指定します。
+
+詳細なメタ情報仕様は [`docs/specification.md`](docs/specification.md) を参照してください。
+
+### Applicationごとのユーザー管理
+
+AuthCoreは共通のユーザー管理UI・認証APIを提供し、内部ではApplication IDによってユーザー空間を分離します。
+
+AlumniCoreとStageArtはそれぞれ独立したユーザー空間を持つため、同じメールアドレスやログインIDを登録できます。ただし、それぞれのApplication内ではメールアドレスとログインIDを一意とします。
+
+```text
+AlumniCore
+  User #123
+  email = user@example.com
+
+StageArt
+  User #123
+  email = user@example.com
+```
+
+上記は完全に別アカウントです。
 
 ## Design Principles
 
@@ -113,6 +145,46 @@ AlumniVoiceのようにAlumniCoreそのものを拡張するプラグインに�
 4. **Permissions are application-scoped.**  権限は各アプリケーションの境界を越えて共有しない。
 5. **Extensions share their parent application's identity.**  同一アプリケーション基盤を拡張するプラグインは、親アプリケーションのユーザー・権限体系を利用できる。
 6. **Application data remains isolated.**  各アプリケーション固有のデータは、それぞれのプラグイン側で管理する。
+7. **Plugin metadata is the integration contract.**  AuthCore対応プラグインは、定義されたメタ情報によってApplicationまたはExtensionであることを宣言する。
+
+## Planned Database
+
+### Applications
+
+```text
+wp_authcore_applications
+-------------------------
+application_id
+application_key
+name
+status
+created_at
+updated_at
+```
+
+### User Accounts
+
+```text
+wp_authcore_user_accounts
+-------------------------
+user_account_id
+application_id
+login_id
+email
+password_hash
+status
+email_verified
+created_at
+updated_at
+last_login_at
+```
+
+メールアドレスとログインIDはApplication単位で一意とします。
+
+```sql
+UNIQUE (application_id, email)
+UNIQUE (application_id, login_id)
+```
 
 ## Planned Use
 
@@ -133,5 +205,7 @@ AuthCoreは、WordPress上に複数の独立したアプリケーションを構
 ## Status
 
 現在は設計・仕様策定フェーズです。
+
+AuthCore対応プラグインのメタ情報仕様 v1.0は確定しています。
 
 今後、認証仕様、データベース設計、プラグインAPI、権限モデル、管理画面などを順次実装していきます。
