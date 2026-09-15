@@ -23,12 +23,10 @@ final class OnboardingPage
         string $menuTitle = 'Onboarding',
         string $pageTitle = 'Application Setup',
         string $capability = 'manage_options',
-        string $adminCapability = 'admin',
     ): string {
         $context = UserManagementContext::create($applicationKey, $parentMenuSlug, $menuTitle, $pageTitle, $capability);
         self::$contexts[$context->menuSlug] = $context;
-        self::$contexts[$context->menuSlug]->adminCapability = $adminCapability;
-        return $context->menuSlug;
+        return $context->menuSlug . '-onboarding';
     }
 
     public static function menu(): void
@@ -68,7 +66,7 @@ final class OnboardingPage
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['authcore_onboarding_submit'])) {
             check_admin_referer('authcore_onboarding_' . $context->menuSlug);
             try {
-                $userAccountId = AuthCore::createInitialAdmin(
+                AuthCore::createInitialAdmin(
                     $context->applicationId,
                     (string) ($_POST['login_id'] ?? ''),
                     (string) ($_POST['email'] ?? ''),
