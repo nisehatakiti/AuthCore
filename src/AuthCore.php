@@ -58,4 +58,19 @@ final class AuthCore
     {
         return (new Authenticator())->authenticate($applicationId, $identifier, $password);
     }
+
+    public static function login(int $applicationId, string $identifier, string $password): AuthenticationResult
+    {
+        return (new SessionManager())->login($applicationId, $identifier, $password);
+    }
+
+    public static function logout(int $applicationId): void
+    {
+        (new SessionManager())->logout($applicationId);
+    }
+
+    public static function getCurrentAccount(int $applicationId): ?array
+    {
+        return (new SessionManager())->getCurrentAccount($applicationId);
+    }
 }
