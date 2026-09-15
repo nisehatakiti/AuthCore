@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace AuthCore;
 
+use AuthCore\Database\Installer;
+
 final class Plugin
 {
     private static bool $booted = false;
@@ -24,18 +26,26 @@ final class Plugin
 
     public static function activate(): void
     {
-        if (get_option(Config::OPTION_DB_VERSION, null) === null) {
-            add_option(Config::OPTION_DB_VERSION, Config::DB_VERSION, '', false);
-        }
+        Installer::install();
     }
 
     public static function deactivate(): void
     {
-        // Phase 0 intentionally performs no destructive cleanup on deactivation.
+        // AuthCore does not remove data on deactivation.
     }
 
     public static function initialize(): void
     {
+        self::maybeMigrate();
         do_action('authcore/loaded', AUTHCORE_VERSION);
+    }
+
+    private static function maybeMigrate(): void
+    {
+        $installed_version = get_option(Config::OPTION_DB_VERSION, null);
+
+        if ($installed_version !== Config::DB_VERSION) {
+            Installer::migrate();
+        }
     }
 }
