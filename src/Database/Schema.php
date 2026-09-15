@@ -8,7 +8,8 @@ final class Schema
 {
     public const APPLICATIONS_TABLE = 'authcore_applications';
     public const USER_ACCOUNTS_TABLE = 'authcore_user_accounts';
-    public const VERSION = '1.1.0';
+    public const SESSIONS_TABLE = 'authcore_sessions';
+    public const VERSION = '1.2.0';
 
     public static function applications_table(): string
     {
@@ -20,5 +21,11 @@ final class Schema
     {
         global $wpdb;
         return $wpdb->prefix . self::USER_ACCOUNTS_TABLE;
+    }
+
+    public static function sessions_table(): string
+    {
+        global $wpdb;
+        return $wpdb->prefix . self::SESSIONS_TABLE;
     }
 }
