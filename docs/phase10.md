@@ -63,6 +63,32 @@ Create accounts with the same login ID and email in two Applications.
 - [ ] WordPress capability checks prevent unauthorized access.
 - [ ] An Extension's common user-management page operates on the parent Application's users.
 
+### 8. Initial administrator onboarding
+
+- [ ] An Application with zero AuthCore users exposes the onboarding submenu.
+- [ ] The onboarding page is attached to the product's existing WordPress admin menu.
+- [ ] The onboarding form requires login ID, email, password, and password confirmation.
+- [ ] Password confirmation mismatch does not create an account.
+- [ ] The first account is created in the resolved Application context only.
+- [ ] The first account receives the common `admin` capability.
+- [ ] The created account is marked as active and email-verified for initial setup.
+- [ ] Once an account exists, the onboarding page is no longer presented as a setup action.
+- [ ] A second initialization attempt is rejected/treated as already initialized.
+- [ ] An Extension's onboarding resolves to the parent Application and does not create a separate user space.
+
+### 9. AlumniCore integration acceptance
+
+AlumniCore is the first representative Application integration. AlumniCore has no pre-existing user or login system, so no user migration is required.
+
+- [ ] AlumniCore registers as AuthCore Application Key `alumni` when AuthCore is active.
+- [ ] Installing/activating AuthCore after AlumniCore does not require reinstalling AlumniCore.
+- [ ] Installing/activating AlumniCore after AuthCore registers `alumni` automatically.
+- [ ] AlumniCore's existing `alumni-core` admin menu contains the AuthCore user-management entry.
+- [ ] With zero AlumniCore users, the initial administrator onboarding entry is available.
+- [ ] Creating the first AlumniCore administrator creates an AuthCore account scoped to `alumni`.
+- [ ] The initial AlumniCore administrator receives the common `admin` capability.
+- [ ] AlumniCore continues to load normally when AuthCore is not installed or active.
+
 ## Security acceptance
 
 - [ ] Session cookies are HttpOnly.
@@ -73,6 +99,8 @@ Create accounts with the same login ID and email in two Applications.
 - [ ] Oversized authentication input is rejected.
 - [ ] Database failures are not silently treated as successful persistence operations.
 - [ ] User-facing HTML output is escaped.
+- [ ] Onboarding POST requests require a WordPress nonce and the configured admin capability.
+- [ ] Onboarding cannot target an arbitrary Application ID supplied by the browser.
 
 ## Runtime status
 
