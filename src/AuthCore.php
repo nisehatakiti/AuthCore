@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace AuthCore;
 
+use AuthCore\Authentication\AuthenticationResult;
+use AuthCore\Authentication\Authenticator;
+
 final class AuthCore
 {
     public static function version(): string
@@ -49,5 +52,10 @@ final class AuthCore
     public static function deleteUserAccount(int $applicationId, int $userAccountId): void
     {
         (new UserAccountManager())->delete($applicationId, $userAccountId);
+    }
+
+    public static function authenticate(int $applicationId, string $identifier, string $password): AuthenticationResult
+    {
+        return (new Authenticator())->authenticate($applicationId, $identifier, $password);
     }
 }
