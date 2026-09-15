@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace AuthCore;
 
+use AuthCore\Admin\OnboardingPage;
 use AuthCore\Admin\UserManagementPage;
 use AuthCore\Database\Installer;
 
@@ -14,7 +15,10 @@ final class Plugin
         register_activation_hook(AUTHCORE_FILE, [self::class, 'activate']);
         register_deactivation_hook(AUTHCORE_FILE, [self::class, 'deactivate']);
         add_action('plugins_loaded', [self::class, 'onPluginsLoaded'], 20);
-        if (is_admin()) UserManagementPage::register();
+        if (is_admin()) {
+            UserManagementPage::register();
+            OnboardingPage::register();
+        }
     }
 
     public static function activate(): void { Installer::install(); }
