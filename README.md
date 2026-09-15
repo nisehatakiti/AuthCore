@@ -40,172 +40,38 @@ AuthCoreは、WordPress上で複数の独立したアプリケーション／プ
     Alumni固有DB      StageArt固有DB     CDRMap固有DB
 ```
 
-AuthCoreが共通化するのは、主に認証処理そのものです。
+## Application / Extension
 
-- ログイン／ログアウト
-- パスワード管理
-- パスワードリセット
-- メールアドレス確認
-- セッション管理
-- ログイン試行制御
-- 認証に関するセキュリティ機能
-- 各アプリケーションから利用する認証API
-
-一方、以下は原則として各アプリケーションが独立して管理します。
-
-- アプリケーション固有のユーザー情報
-- アプリケーション固有のプロフィール
-- アプリケーション固有の権限
-- アプリケーション固有のデータ
-
-## Application Boundary
-
-AuthCoreを利用するプラグインは、それぞれ独立したユーザー空間を持ちます。
-
-```text
-AuthCore
-│
-├── AlumniCore
-│    ├── Alumni User #1
-│    ├── Alumni User #2
-│    └── Alumni User #123
-│
-├── StageArt
-│    ├── StageArt User #1
-│    ├── StageArt User #2
-│    └── StageArt User #123
-│
-└── CDRMap
-     └── CDRMap User #123
-```
-
-各アプリケーションから、原則として他アプリケーションのユーザー情報や権限は見えない状態を目指します。
-
-## Extensibility
-
-AuthCoreを基盤として、関連プラグインが独自の機能や権限を追加できる拡張機構を提供します。
-
-### ApplicationとExtension
-
-AuthCore対応プラグインは、`application` と `extension` の2種類に分類されます。
+AuthCore対応プラグインは `application` と `extension` に分類されます。
 
 - **Application** — 独立したユーザー・アカウント・権限空間を持つ製品
-- **Extension** — 既存Applicationを拡張し、親Applicationのユーザー・権限体系を共有するプラグイン
+- **Extension** — 親Applicationのユーザー・権限体系を共有する拡張
 
-例えば、AlumniCoreはApplication、AlumniVoiceはAlumniCoreのExtensionとして登録できます。
+Application Keyは論理識別子として扱い、Extensionの親はApplication Keyで指定します。
 
-### AuthCoreメタ情報
+## Common User Management
 
-AuthCore対応プラグインは、WordPressプラグインヘッダーにAuthCore専用メタ情報を定義します。プラグイン有効化時にAuthCoreがメタ情報を読み取り、ApplicationまたはExtensionとして自動登録します。
+AuthCoreはApplicationごとの共通ユーザー管理UIと認証APIを提供します。Extensionから利用する場合は、親Applicationのユーザー空間に自動的に解決されます。
 
-Applicationの必須項目:
+管理画面は製品側のWordPressメニューへサブメニューとして登録され、ブラウザから任意のApplication IDを指定する方式は採用していません。
 
-```text
-AuthCore: application
-AuthCore Application Key: alumni
-AuthCore Application Name: AlumniCore
-```
+## Security
 
-Extensionの必須項目:
+- アカウント、セッション、CapabilityはApplication境界で分離
+- Extensionは親Applicationのコンテキストへ解決
+- パスワードはWordPressのハッシュAPIで保存
+- セッションDBにはTokenそのものを保存せずSHA-256ハッシュを保存
+- セッションCookieはHttpOnly / SameSite=Lax、HTTPS時はSecure
+- 認証失敗時は汎用エラーを使用
+- 不明アカウントでもダミーハッシュのパスワードチェックを実施
+- 管理画面ではWordPress capabilityを確認
 
-```text
-AuthCore: extension
-AuthCore Application Key: alumni-voice
-AuthCore Application Name: AlumniVoice
-AuthCore Parent Application: alumni
-```
+## Development Status
 
-Application Keyは論理識別子として扱い、原則変更しません。ExtensionのParent Applicationは親ApplicationのApplication Keyで指定します。
+Phase 0〜9の実装とセキュリティ強化が完了しています。
 
-詳細なメタ情報仕様は [`docs/specification.md`](docs/specification.md) を参照してください。
+Phase 10では、実WordPress環境でのE2E / v1受入試験を行います。受入項目は [`docs/phase10.md`](docs/phase10.md) に定義しています。
 
-### Applicationごとのユーザー管理
+**Current status: implementation-complete, runtime acceptance pending.**
 
-AuthCoreは共通のユーザー管理UI・認証APIを提供し、内部ではApplication IDによってユーザー空間を分離します。
-
-AlumniCoreとStageArtはそれぞれ独立したユーザー空間を持つため、同じメールアドレスやログインIDを登録できます。ただし、それぞれのApplication内ではメールアドレスとログインIDを一意とします。
-
-```text
-AlumniCore
-  User #123
-  email = user@example.com
-
-StageArt
-  User #123
-  email = user@example.com
-```
-
-上記は完全に別アカウントです。
-
-## Design Principles
-
-1. **Authentication is shared.**  認証処理・セキュリティ機構はAuthCoreで共通化する。
-2. **Accounts are application-scoped.**  アカウントは利用するアプリケーション単位で管理する。
-3. **User IDs are local to an application.**  User #123は各アプリケーションで独立したIDとして扱う。
-4. **Permissions are application-scoped.**  権限は各アプリケーションの境界を越えて共有しない。
-5. **Extensions share their parent application's identity.**  同一アプリケーション基盤を拡張するプラグインは、親アプリケーションのユーザー・権限体系を利用できる。
-6. **Application data remains isolated.**  各アプリケーション固有のデータは、それぞれのプラグイン側で管理する。
-7. **Plugin metadata is the integration contract.**  AuthCore対応プラグインは、定義されたメタ情報によってApplicationまたはExtensionであることを宣言する。
-
-## Planned Database
-
-### Applications
-
-```text
-wp_authcore_applications
--------------------------
-application_id
-application_key
-name
-status
-created_at
-updated_at
-```
-
-### User Accounts
-
-```text
-wp_authcore_user_accounts
--------------------------
-user_account_id
-application_id
-login_id
-email
-password_hash
-status
-email_verified
-created_at
-updated_at
-last_login_at
-```
-
-メールアドレスとログインIDはApplication単位で一意とします。
-
-```sql
-UNIQUE (application_id, email)
-UNIQUE (application_id, login_id)
-```
-
-## Planned Use
-
-AuthCoreは、WordPress上に複数の独立したアプリケーションを構築する際の共通認証基盤として利用することを想定しています。
-
-```text
-                    WordPress
-                       │
-                    AuthCore
-                       │
-        ┌──────────────┼──────────────┐
-        ↓              ↓              ↓
-    AlumniCore      StageArt        CDRMap
-        │              │              │
-   AlumniVoice      各種拡張        各種拡張
-```
-
-## Status
-
-現在は設計・仕様策定フェーズです。
-
-AuthCore対応プラグインのメタ情報仕様 v1.0は確定しています。
-
-今後、認証仕様、データベース設計、プラグインAPI、権限モデル、管理画面などを順次実装していきます。
+実環境でのE2E試験を完了するまでは「完全検証済み」とは扱いません。
