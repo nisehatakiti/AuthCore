@@ -13,6 +13,8 @@ final class Schema
     public const USER_CAPABILITIES_TABLE = 'authcore_user_capabilities';
     public const VERSION = '1.3.0';
 
+    public static function version(): string { return self::VERSION; }
+
     public static function applications_table(): string { global $wpdb; return $wpdb->prefix . self::APPLICATIONS_TABLE; }
     public static function user_accounts_table(): string { global $wpdb; return $wpdb->prefix . self::USER_ACCOUNTS_TABLE; }
     public static function sessions_table(): string { global $wpdb; return $wpdb->prefix . self::SESSIONS_TABLE; }
