@@ -1,0 +1,41 @@
+name: Build AuthCore Plugin ZIP
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare plugin package
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf package authcore-plugin.zip
+          mkdir -p package/authcore
+          cp authcore.php package/authcore/
+          cp -R src package/authcore/
+
+      - name: Create ZIP
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd package
+          zip -r ../authcore-plugin.zip authcore
+          cd ..
+          unzip -t authcore-plugin.zip
+
+      - name: Upload plugin ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: authcore-plugin
+          path: authcore-plugin.zip
+          if-no-files-found: error
